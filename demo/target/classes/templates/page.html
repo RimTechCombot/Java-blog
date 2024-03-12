@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/pages">Pages</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/register">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a th:if="${#authorization.expression('hasAuthority(''Admin'')')}" class="nav-link" aria-current="page" href="/pages/create">Create a new page</a>
+                </li>
+                <li class="nav-item">
+                    <a th:if="${#authorization.expression('hasAuthority(''Admin'')')}" class="nav-link" th:href="@{/pages/{id}/edit(id=${page.id})}">Edit</a>
+                </li>
+                <li class="nav-item">
+                    <a th:if="${#authorization.expression('hasAuthority(''Admin'')')}" class="nav-link" th:href="@{/deletePage(page_id=${page.id})}">Delete page</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-5 mx-auto">
+            <div class="card" style="width: 40rem;">
+                <div class="card-body">
+                    <p th:text="${page.title}"></p>
+                    <p class="card-text" style="white-space: pre-wrap" th:text="${page.body}"></p>
+                    <text>Page was written by:</text>
+                    <text th:text="${page.user.userName}"></text>
+                    <br>
+                    <text>Page was written at:</text>
+                    <text th:text="${page.date}"></text>
+                    <br>
+                    <p th:text="${upvote}"></p>
+                    <a th:if="${upvote==false}" th:href="@{/upvotePage(page_id=${page.id})}">Downvote page</a>
+                    <a th:if="${upvote==true}" th:href="@{/upvotePage(page_id=${page.id})}">Upvote page</a>
+                    <br>
+                </div>
+            </div>
+            <th:block th:each="comment : ${page.comments}">
+                <div class="card" style="width: 40rem;">
+                    <div class="card-body">
+                        <h5 th:inline="text" class="card-title">[[${comment.date}]] [[${comment.user.userName}]] wrote:</h5>
+                        <p class="card-text" style="white-space: pre-wrap" th:text="${comment.body}"></p>
+                        <a th:if="${#authorization.expression('hasAuthority(''Admin'')')} OR ${#authentication.getPrincipal().getId()}==${comment.user.id}" th:href="@{/deleteComment(comment_id=${comment.id}, page_id=${page.id})}" class="card-link">Delete</a>
+                    </div>
+                </div>
+            </th:block>
+
+                    <div class="card-body">
+                        <h1>Comment</h1>
+                        <form method="post" th:action="@{/pages/{id}(id=${page.id})}" th:object="${comment}">
+                            <label class="form-label">Comment</label>
+                            <input type="text" class="form-control" name="body">
+                            <div class="alert alert-warning" th:if="${#fields.hasErrors('body')}" th:errors="*{body}"></div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+
+             </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
